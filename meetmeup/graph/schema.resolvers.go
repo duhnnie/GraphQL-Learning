@@ -7,6 +7,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"meetmeup/graph/model"
 )
 
@@ -19,6 +20,36 @@ func (r *meetupResolver) User(ctx context.Context, obj *model.Meetup) (*model.Us
 	}
 
 	return nil, nil
+}
+
+// CreateMeetup is the resolver for the createMeetup field.
+func (r *mutationResolver) CreateMeetup(ctx context.Context, input model.NewMeetupInput) (*model.Meetup, error) {
+	m := &model.Meetup{
+		ID:          fmt.Sprintf("%d", len(meetups)+1),
+		Name:        input.Name,
+		Description: input.Description,
+		UserID:      input.UserID,
+	}
+
+	meetups = append(meetups, m)
+	return m, nil
+}
+
+// CreateUser is the resolver for the createUser field.
+func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUserInput) (*model.User, error) {
+	u := &model.User{
+		ID:       fmt.Sprintf("%d", len(users)+1),
+		Username: input.Username,
+		Email:    input.Email,
+	}
+
+	users = append(users, u)
+	return u, nil
+}
+
+// Users is the resolver for the users field.
+func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
+	return users, nil
 }
 
 // Meetups is the resolver for the meetups field.
@@ -42,6 +73,9 @@ func (r *userResolver) Meetups(ctx context.Context, obj *model.User) ([]*model.M
 // Meetup returns MeetupResolver implementation.
 func (r *Resolver) Meetup() MeetupResolver { return &meetupResolver{r} }
 
+// Mutation returns MutationResolver implementation.
+func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
+
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
@@ -49,5 +83,6 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 func (r *Resolver) User() UserResolver { return &userResolver{r} }
 
 type meetupResolver struct{ *Resolver }
+type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }

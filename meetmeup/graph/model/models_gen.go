@@ -2,5 +2,19 @@
 
 package model
 
+type CreateUserInput struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
+
+type Mutation struct {
+}
+
+type NewMeetupInput struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	UserID      string `json:"userId"`
+}
+
 type Query struct {
 }
