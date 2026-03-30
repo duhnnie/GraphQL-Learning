@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"meetmeup/graph"
+	"meetmeup/repository"
 	"net/http"
 	"os"
 
@@ -22,18 +23,24 @@ func main() {
 		port = defaultPort
 	}
 
-	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
+	userRepo := repository.NewUserRepo()
 
-	srv.AddTransport(transport.Options{})
-	srv.AddTransport(transport.GET{})
-	srv.AddTransport(transport.POST{})
+	h := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: graph.NewResolver(
+		userRepo,
+		repository.NewMeetupRepo(),
+	)}))
 
-	srv.SetQueryCache(lru.New[*ast.QueryDocument](1000))
+	h.AddTransport(transport.Options{})
+	h.AddTransport(transport.GET{})
+	h.AddTransport(transport.POST{})
 
-	srv.Use(extension.Introspection{})
-	srv.Use(extension.AutomaticPersistedQuery{
+	h.SetQueryCache(lru.New[*ast.QueryDocument](1000))
+
+	h.Use(extension.Introspection{})
+	h.Use(extension.AutomaticPersistedQuery{
 		Cache: lru.New[string](100),
 	})
+	srv := graph.Middleware(userRepo, h)
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)

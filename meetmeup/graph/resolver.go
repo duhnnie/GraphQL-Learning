@@ -1,18 +1,26 @@
 package graph
 
-import "meetmeup/graph/model"
+import (
+	"meetmeup/repository"
+)
 
 // This file will not be regenerated automatically.
 //
 // It serves as dependency injection for your app, add any dependencies you require
 // here.
 
-var users = []*model.User{
-	{ID: "1", Username: "pepiro", Email: "pepiro@gmail.com"},
-}
-var meetups = []*model.Meetup{
-	{ID: "1", Name: "meetup #1", Description: "description 1", UserID: "1"},
-}
+// var users = []*model.User{
+// 	{ID: "1", Username: "pepiro", Email: "pepiro@gmail.com"},
+// }
 
 type Resolver struct {
+	userRepo   *repository.UserRepository
+	meetupRepo *repository.MeetupRepository
+}
+
+func NewResolver(userRepo *repository.UserRepository, meetupRepo *repository.MeetupRepository) *Resolver {
+	return &Resolver{
+		userRepo:   userRepo,
+		meetupRepo: meetupRepo,
+	}
 }

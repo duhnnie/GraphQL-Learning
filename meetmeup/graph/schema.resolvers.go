@@ -7,58 +7,41 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"meetmeup/graph/model"
 )
 
 // User is the resolver for the user field.
 func (r *meetupResolver) User(ctx context.Context, obj *model.Meetup) (*model.User, error) {
-	for _, u := range users {
-		if obj.UserID == u.ID {
-			return u, nil
-		}
-	}
-
-	return nil, nil
+	return GetUser(ctx, obj.UserID)
 }
 
 // CreateMeetup is the resolver for the createMeetup field.
 func (r *mutationResolver) CreateMeetup(ctx context.Context, input model.NewMeetupInput) (*model.Meetup, error) {
-	m := &model.Meetup{
-		ID:          fmt.Sprintf("%d", len(meetups)+1),
-		Name:        input.Name,
-		Description: input.Description,
-		UserID:      input.UserID,
-	}
-
-	meetups = append(meetups, m)
-	return m, nil
+	return r.meetupRepo.CreateMeetup(ctx, input)
 }
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUserInput) (*model.User, error) {
-	u := &model.User{
-		ID:       fmt.Sprintf("%d", len(users)+1),
-		Username: input.Username,
-		Email:    input.Email,
-	}
-
-	users = append(users, u)
-	return u, nil
+	return r.userRepo.CreateUser(ctx, input)
 }
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
-	return users, nil
+	return r.userRepo.GetAll(ctx)
 }
 
 // Meetups is the resolver for the meetups field.
 func (r *queryResolver) Meetups(ctx context.Context) ([]*model.Meetup, error) {
-	return meetups, nil
+	return r.meetupRepo.GetAll(ctx)
 }
 
 // Meetups is the resolver for the meetups field.
 func (r *userResolver) Meetups(ctx context.Context, obj *model.User) ([]*model.Meetup, error) {
+	meetups, err := r.meetupRepo.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	var m = []*model.Meetup{}
 
 	for _, meetup := range meetups {
